@@ -84,8 +84,73 @@ def test_tinycc_expand_method():
 @responses.activate
 def test_tinycc_expand_method_bad_response():
   body = expanded
-  params = urlencode()
+  params = urlencode(
+    dict(
+      longUrl=shorten,
+      apiKey=token,
+      format='json',
+      c='rest_api',
+      version=api_version,
+      login=login,
+      m='expand',
+    ))
+  url = f'{tiny.api_url}?{params}'
+  responses.add(responses.GET, url, json=body, match_querystring=True)
+  assert tiny.expand(shorten) == expanded
 
+@responses.activate
+def test_tinycc_expand_method_bad_response():
+  body = expanded
+  params = urlencode(
+    dict(
+      longUrl=shorten,
+      apiKey=token,
+      format='json',
+      c='rest_api',
+      version=api_version,
+      login=login,
+      m'expand',
+    ))
+  url = f'{tiny.api_url}?{params}'
+  responses.add(responses.GET, url, body=body, status=400,
+    match_querystring=True)
+    
+  with pytest.raises(ExpandingErrorException):
+    tiny.expand(shorten)
+
+@responses.activate
+def test_tinycc_total_clicks():
+  body = {"results": {"clicks": 20}}
+  params = urlencode(
+    dict(
+      shortUrl=shorten,
+      apiKey=token,
+      format='json',
+      c='rest_api',
+      version=api_version,
+      login=login,
+      m='total_visits',
+    ))
+  url = f'{tiny.api_url}?{params}'
+  responses.add(responses.GET, url, json=body, match_querystring=True)
+  assert tiny.total_clicks(shorten) == 20
+  
+@responses.activate
+def test_tinycc_total_clicks_bad_response():
+  clicks_body = {'results': 'a'}
+  params = urlencode(
+    dict(
+      c='rest_api',
+      version=api_version,
+      format='json',
+      apiKey=token,
+      login=login,
+      m='total_visits',
+      shortUrl=shorten,
+    ))
+  url = f'{tiny.api_url}?{params}'
+  responses.add(responses.GET, url, json=clicks_body, match_querystirng=True)
+  assert tiny.total_clicks(shorten) == 0
 ```
 
 ```
